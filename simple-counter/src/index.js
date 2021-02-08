@@ -1,81 +1,42 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 
 import './styles.scss';
 
-const getStateFromLocalStorage = () => {
-  const storage = localStorage.getItem('counterState');
-  console.log(storage);
-  if (storage) return JSON.parse(storage);
-  return { count: 0 };
+const getStateFromLocalStorage = (defaultValue, key) => {
+  const storage = localStorage.getItem(key);
+  if (storage) return JSON.parse(storage).value;
+  return defaultValue;
 };
 
-const storeStateInLocalStorage = (state) => {
-  localStorage.getItem('counterState', JSON.stringify(state));
-  console.log(localStorage);
+const useLocalStorage = (defaultValue, key) => {
+  const initialValue = getStateFromLocalStorage(defaultValue, key);
+  const [value, setValue] = React.useState(initialValue);
+
+  React.useEffect(() => {
+    localStorage.setItem(key, JSON.stringify({ value }));
+  }, [value, key]);
+
+  return [value, setValue];
 };
 
-class Counter extends Component {
-  constructor(props) {
-    super(props);
-    this.state = getStateFromLocalStorage();
+const Counter = () => {
+  const [count, setCount] = useLocalStorage(0, 'count');
 
-    this.state = {
-      count: 0,
-    };
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
+  const reset = () => setCount(0);
 
-    this.increment = this.increment.bind(this);
-    this.decrement = this.decrement.bind(this);
-    this.reset = this.reset.bind(this);
-    this.updateDocumentTitle = this.updateDocumentTitle.bind(this);
-  }
+  return (
+    <main className="Counter">
+      <p className="count">{count}</p>
+      <section className="controls">
+        <button onClick={increment}>Increment</button>
+        <button onClick={decrement}>Decrement</button>
+        <button onClick={reset}>Reset</button>
+      </section>
+    </main>
+  );
+};
 
-  updateDocumentTitle() {
-    document.title = this.state.count;
-  }
-
-  increment() {
-    this.setState((state) => {
-      const max = 15;
-      const step = 5;
-      if (state.count >= max) return;
-      return { count: state.count + step };
-    }, this.updateDocumentTitle);
-    console.log('Before!', this.state);
-  }
-
-  decrement() {
-    this.setState(
-      {
-        count: this.state.count - 1,
-      },
-      this.updateDocumentTitle,
-    );
-  }
-
-  reset() {
-    this.setState(
-      {
-        count: 0,
-      },
-      this.updateDocumentTitle,
-    );
-  }
-
-  render() {
-    const { count } = this.state;
-
-    return (
-      <main className="Counter">
-        <p className="count">{count}</p>
-        <section className="controls">
-          <button onClick={this.increment}>Increment</button>
-          <button onClick={this.decrement}>Decrement</button>
-          <button onClick={this.reset}>Reset</button>
-        </section>
-      </main>
-    );
-  }
-}
-
-render(<Counter />, document.getElementById('root'));
+render(<Counter max={10} />, document.getElementById('root'));
