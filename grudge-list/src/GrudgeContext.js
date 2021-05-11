@@ -48,6 +48,15 @@ const reducer = (state = defaultState, action) => {
     };
   }
 
+  if (action.type === 'REDO') {
+    const [newPresent, ...newFuture] = state.future;
+    return {
+      past: [state.present, ...state.past],
+      present: newPresent,
+      future: newFuture,
+    };
+  }
+
   return state;
 };
 
@@ -90,9 +99,21 @@ export const GrudgeProvider = ({ children }) => {
     dispatch({ type: 'UNDO' });
   }, [dispatch]);
 
+  const redo = useCallback(() => {
+    dispatch({ type: 'REDO' });
+  }, [dispatch]);
+
   return (
     <GrudgeContext.Provider
-      value={{ grudges, addGrudge, toggleForgiveness, undo, isPast, isFuture }}
+      value={{
+        grudges,
+        addGrudge,
+        toggleForgiveness,
+        undo,
+        redo,
+        isPast,
+        isFuture,
+      }}
     >
       {children}
     </GrudgeContext.Provider>
